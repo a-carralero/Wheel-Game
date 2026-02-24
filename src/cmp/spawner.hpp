@@ -1,0 +1,18 @@
+#pragma once
+#include <cstdint>
+#include <chrono>
+#include <functional>
+#include "cmp/component.hpp"
+
+struct SpawnerCmp: Component<SpawnerCmp>
+{
+   explicit SpawnerCmp(uint32_t eid)
+      : Component(eid) {}
+   
+   using clk = std::chrono::steady_clock;
+
+   std::function<void(uint32_t x, uint32_t y, int32_t vx, int32_t vy)> spawnMethod {};
+   clk::time_point last_spawn_time = clk::now();
+   std::chrono::duration<double> spawn_interval = std::chrono::seconds(5); 
+   std::size_t to_be_spawned = 3;
+};

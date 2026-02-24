@@ -1,0 +1,9 @@
+build/
+pngs/
+game
+*.o
+*.a
+.vscode/
+.cache/
+compile_commands.json
+
