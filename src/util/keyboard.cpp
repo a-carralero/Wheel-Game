@@ -1,26 +1,33 @@
 #include "util/keyboard.hpp"
 #include <iostream>
 
-bool& Keyboard::getMapElement(KeySym k){
+bool* Keyboard::getMapElement(KeySym k){
    auto it = m_pressedKeys.find(k);
    if (it != m_pressedKeys.end()){
-      return it->second;
+      return &it->second;
    } else{
       std::cerr << "getMapElement: la tecla no existe en el mapa\n";
-      std::terminate();
+      return nullptr;
    }
 }
 
-bool Keyboard::isKeyPressed(KeySym k){
-   return getMapElement(k);
+bool Keyboard::isKeyPressed(KeySym k)
+{
+   bool* keypressed = getMapElement(k);
+   if (keypressed == nullptr)
+      return false; // no existe la tecla
+   else
+      return *keypressed;
 }
 
 void Keyboard::keyPressed(KeySym k){
-   getMapElement(k) = true;
+   auto* key = getMapElement(k);
+   if (key != nullptr) *key = true;
 }
 
 void Keyboard::keyRelease(KeySym k){
-   getMapElement(k) = false;
+   auto* key = getMapElement(k);
+   if (key != nullptr) *key = false;
 }
 
 void Keyboard::resetKeyboard(){

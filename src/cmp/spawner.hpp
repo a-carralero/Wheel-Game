@@ -3,6 +3,17 @@
 #include <chrono>
 #include <functional>
 #include "cmp/component.hpp"
+#include "util/rangedtimer.hpp"
+
+enum class SpawnType{
+   health ,
+   ammo
+};
+
+enum class SpawnStatus{
+   idle ,         // An entity has been created. Idle until the entity is picked
+   waiting2spawn  // Waiting before the creation of a new entity
+};
 
 struct SpawnerCmp: Component<SpawnerCmp>
 {
@@ -11,8 +22,12 @@ struct SpawnerCmp: Component<SpawnerCmp>
    
    using clk = std::chrono::steady_clock;
 
-   std::function<void(uint32_t x, uint32_t y, int32_t vx, int32_t vy)> spawnMethod {};
-   clk::time_point last_spawn_time = clk::now();
-   std::chrono::duration<double> spawn_interval = std::chrono::seconds(5); 
-   std::size_t to_be_spawned = 3;
+   SpawnType type = SpawnType::health;       // Type of obect to be spawned
+   SpawnStatus status = SpawnStatus::idle;   // Initially in idle status
+   uint32_t spawned_eid = INVALID_EID;                 // EID of the last entity spawaned
+   static constexpr int64_t s = 1'000'000;   // Same second definition as in RangedTimer
+   //RangedTimer timer {10*s, 20*s};         // Spawn each 10-20 seconds with a gaussian probability mean 15
+   Timer timer {};
+   int64_t spawn_interval = 15*s;
+
 };

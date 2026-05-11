@@ -14,12 +14,10 @@ void AiSys::update(EntityManager& g, double const dt) const
 {
    Blackboard& bb = g.getBlackboard();
 
-   for(auto& ai: g.getComponents<AiCmp>())
+   for(auto& ai: g.getCmpVector<AiCmp>())
    {  
-      auto* phy_ptr = g.getRequiredCmpFromCmp<PhysicsCmp>(ai);
-      if (!phy_ptr) return;
+      auto& phy = g.getRequiredCmpFromCmp<PhysicsCmp>(ai);
 
-      auto& phy = *phy_ptr;
       phy.acceleration = phy.v_angular = 0.0;
 
       perception(bb, ai, dt);
@@ -38,12 +36,8 @@ void AiSys::update(EntityManager& g, double const dt) const
             break;
          case SB::Pursue: {
             Entity& e = g.getEntityByID(ai.teid);
-            const PhysicsCmp* phyTarget = e.getComponent<PhysicsCmp>();
-            if (!phyTarget){
-               std::cerr << "The target entity has no physics component\n";
-               std::terminate();
-            }
-            motion_cmd = pursue(*phyTarget, phy, ai.time2arrive);
+            const PhysicsCmp& phyTarget = e.getComponent<PhysicsCmp>();
+            motion_cmd = pursue(phyTarget, phy, ai.time2arrive);
             break;
          }
          case SB::PathFollowing:{
@@ -58,7 +52,7 @@ void AiSys::update(EntityManager& g, double const dt) const
                path.next();
          }
       }
-
+      
       phy.acceleration = motion_cmd.acc;
       phy.v_angular = motion_cmd.v_angular;
    }
@@ -73,13 +67,14 @@ void AiSys::perception(Blackboard& bb, AiCmp& ai, const double dt) const
 
    // Perception
    if (bb.tactive){
-      if (bb.behaviour != ai.behaviour){
+      // if (bb.behaviour != ai.behaviour){
          ai.behaviour = bb.behaviour;
          ai.target = bb.target;
          bb.tactive = false;
          ai.tactive = true;
          ai.teid = bb.teid;
-      }
+         std::cout <<" Ai Behaviour change\n";
+      // }
       // std::printf("[%d] VOY! (%.1f,%.1f)\n", ai.getEntityID(), ai.tx, ai.ty);
    }
 }
@@ -109,10 +104,10 @@ MotionCmd AiSys::seek(Vec2D target, const PhysicsCmp& phy, double time2arrive) c
    double ang_vel = orientationControl(theta_ref, phy.orientation, kp*2.0, -phy.kMaxVAng, phy.kMaxVAng);
    // Pounding velocity
    double velref = phy.kMaxV / (1.0 + std::fabs(ang_vel)/3.0);
-   std::cout << "seek velref = " << velref << "\n";
-   std::cout << "state vel   = " << phy.v_linear << "\n";
+   // std::cout << "seek velref = " << velref << "\n";
+   // std::cout << "state vel   = " << phy.v_linear << "\n";
    double acc = accelerationControl(velref, phy.v_linear, kp*6.0, -phy.kMaxA, phy.kMaxA);
-   std::cout << "seek acc = " << acc << "\n";
+   // std::cout << "seek acc = " << acc << "\n";
    return {acc, ang_vel};
 }
 

@@ -22,6 +22,7 @@ struct PhysicsCmp: Component<PhysicsCmp>
    Vec2D pos {}; 
    double orientation = 0.0;
    double v_linear = 0.0;
+   double v_max = kMaxV;
    double v_angular = 0.0;
    double acceleration = 0.0;
    double drag = kDrag;

@@ -6,4 +6,4 @@ game
 .vscode/
 .cache/
 compile_commands.json
-
+core.*

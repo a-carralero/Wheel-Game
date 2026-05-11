@@ -10,5 +10,5 @@ struct CameraCmp: Component<CameraCmp>
    
    uint32_t w = KWIDTH, h = KHEIGHT; // si son const ya no son copiables
    uint32_t scrx = 0, scry = 0; // coordenadas de pantalla
-   int32_t followEntityID = -1;
+   uint32_t followEntityID = INVALID_EID;
 };

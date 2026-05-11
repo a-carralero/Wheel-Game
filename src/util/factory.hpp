@@ -7,7 +7,7 @@
 #include "cmp/input.hpp"
 #include "cmp/collider.hpp"
 #include "cmp/spawner.hpp"
-#include "cmp/health.hpp"
+#include "cmp/status.hpp"
 #include "cmp/ai.hpp"
 #include "util/vec2d.hpp"
 
@@ -25,4 +25,8 @@ public:
    void loadLevelJson(std::string_view filepath);
    void createCamera(Vec2D pos, uint32_t w, uint32_t h, uint32_t followEID=-1);
    void createCamera(Vec2D pos, uint32_t followEID=-1);
+   void createDebugEntity(Vec2D pos, std::string_view spritefile);
+   void createBullet(const PhysicsCmp& phy);
+   uint32_t createCollectable(Vec2D pos, std::string_view spr, double value);
+   void createSpawner(Vec2D pos, SpawnType type);
 };

@@ -10,6 +10,9 @@ auto RenderCmp::loadPNGFileIntoVector(const std::string_view filename)
    std::tuple<std::vector<unsigned char>, unsigned long, unsigned long> tupl;
    auto& [pixels, width, height] = tupl;
    std::ifstream file(filename.data(), std::ios::binary);
+   if (!file) {
+    throw std::runtime_error("Error al abrir archivo: " + std::string(filename));
+   }
    std::vector<unsigned char> filevec (
       std::istreambuf_iterator<char>{file}, 
       std::istreambuf_iterator<char>{}

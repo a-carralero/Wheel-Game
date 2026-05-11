@@ -5,7 +5,7 @@ template <typename T>
 concept Numerical = std::integral<T> || std::floating_point<T>;
 
 template <Numerical T>
-struct Box{
+struct Box_t{
    T x = 0, y = 0;
    T w = 0, h = 0;
    constexpr T xleft() const   {return x; }

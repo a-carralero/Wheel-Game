@@ -2,7 +2,8 @@
 #include <cstdint>
 #include <unordered_map>
 #include "cmp/component.hpp"
-
+#include <utility>
+#include <cassert>
 
 struct Entity
 {
@@ -22,13 +23,20 @@ struct Entity
    }
 
    template <typename Cmp_t>
-   const Cmp_t* getComponent() const {
+   const Cmp_t* getComponentPtr() const {
       uint32_t typeID = Cmp_t::getCmpTypeID();
       auto it = m_components.find(typeID);
       if (it != m_components.end())
          return static_cast<Cmp_t*>(it->second);
       else
          return nullptr;
+   }
+
+   template <typename Cmp_t>
+   Cmp_t* getComponentPtr(){
+      return const_cast<Cmp_t*>(
+         std::as_const(*this).getComponentPtr<Cmp_t>()
+      );
    }
 
    template<typename Cmp_t>
@@ -44,5 +52,30 @@ struct Entity
          it->second = cmp;
       }
    }
+
+   template<typename Cmp_t>
+   bool hasCmp(){
+      uint32_t typeID = Cmp_t::getCmpTypeID();
+      auto it = m_components.find(typeID);
+      if (it != m_components.end())
+         return true;
+      else
+         return false;
+   }
+
+   template <typename Cmp_t>
+   const Cmp_t& getComponent() const {
+      auto* cmp = getComponentPtr<Cmp_t>();
+      assert(cmp && "Se requiere componente inexsitente");
+      return *cmp;
+   }
+
+   template <typename Cmp_t>
+   Cmp_t& getComponent() {
+      auto* cmp = getComponentPtr<Cmp_t>();
+      assert(cmp && "Se requiere componente inexsitente");
+      return *cmp;
+   }
+
 
 };

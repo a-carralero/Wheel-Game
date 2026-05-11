@@ -2,23 +2,52 @@
 #include "man/entitymanager.hpp"
 #include "cmp/spawner.hpp"
 #include "cmp/physics.hpp"
+#include "cmp/render.hpp"
+#include "cmp/collider.hpp"
+#include <cassert>
 #include <iostream>
 
-void SpawnSys::update(EntityManager& g) const 
-{
-   using namespace std::chrono;
-   auto now = steady_clock::now();
-   for (auto& spw: g.getComponents<SpawnerCmp>()) 
-   {
-      auto *phy = g.getRequiredCmpFromCmp<PhysicsCmp>(spw);
-      if (!phy) continue;
 
-      if (spw.to_be_spawned > 0) {
-         auto passed = now - spw.last_spawn_time;
-         if (passed > spw.spawn_interval){
-            spw.spawnMethod(phy->pos.x, phy->pos.y, -1, 0);
-            spw.last_spawn_time = now;
-            --spw.to_be_spawned;
+uint32_t SpawnSys::
+SpawnNewEntity(SpawnType type, Vec2D pos)
+{
+   uint32_t eid = INVALID_EID;
+   switch (type)
+   {
+      case SpawnType::health :{
+         eid = factory.createCollectable(pos, "pngs/heart.png", 40.0);
+         break;
+      }
+      case SpawnType::ammo: {
+         eid = factory.createCollectable(pos, "pngs/ammo.png", 5.0);
+         break;
+      }
+   }
+   return eid;
+}
+
+void SpawnSys::update(EntityManager& g)
+{
+   for (auto& spw: g.getCmpVector<SpawnerCmp>()) 
+   {
+      if (g.isEntityAlive(spw.spawned_eid)) return;
+
+      auto& phy = g.getRequiredCmpFromCmp<PhysicsCmp>(spw);
+      switch (spw.status)
+      {
+         case SpawnStatus::idle: {
+            spw.timer.start();
+            std::printf("ToSpawn: %ld\n", spw.spawn_interval / spw.s);
+            spw.status = SpawnStatus::waiting2spawn;
+            break;
+         }
+         case  SpawnStatus::waiting2spawn:  {
+            if (spw.timer.ellapsed_us() > spw.spawn_interval){
+               std::printf("Spawning\n");
+               spw.spawned_eid = SpawnNewEntity(spw.type, phy.pos);
+               spw.status = SpawnStatus::idle;
+               break;
+            }
          }
       }
    }

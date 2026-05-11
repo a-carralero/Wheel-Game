@@ -7,6 +7,7 @@
 #include "man/componentstorage.hpp"
 #include "cmp/entity.hpp"
 #include "cmp/blackboard.hpp"
+#include "cmp/debug.hpp"
 
 struct EntityManager
 {
@@ -15,6 +16,7 @@ struct EntityManager
    ComponentStorage cmp_storage {KINITIALENTITIES};
    static constexpr uint32_t KINITIALENTITIES = 1000;
    Blackboard blackboard;
+   mutable DebugBoard debugboard;
 
  public:
    explicit EntityManager() {
@@ -25,16 +27,20 @@ struct EntityManager
       return entities.emplace_back();
    }
 
+   std::size_t numberOfEntities(){
+      return entities.size();
+   }
+
    const std::vector<Entity>& getEntities() const {return entities; }
          std::vector<Entity>& getEntities()       {return entities; }
 
    template <typename Cmp_t>
-   const std::vector<Cmp_t>& getComponents() const {
+   const std::vector<Cmp_t>& getCmpVector() const {
       return cmp_storage.getCmpVector<Cmp_t>();
    }
 
    template <typename Cmp_t>
-   std::vector<Cmp_t>& getComponents() {
+   std::vector<Cmp_t>& getCmpVector() {
       return cmp_storage.getCmpVector<Cmp_t>();
    }
          
@@ -46,7 +52,7 @@ struct EntityManager
    template <typename Cmp_t>
    Cmp_t& addComponent(Entity& e){
       uint32_t eid = e.getEntityID();
-      const Cmp_t* cmp_ptr = e.getComponent<Cmp_t>();
+      const Cmp_t* cmp_ptr = e.getComponentPtr<Cmp_t>();
       if (cmp_ptr){
          std::cerr << "EntityManager::addComponent() : El componente a añadir ya existe\n";
          std::terminate();      
@@ -73,16 +79,37 @@ struct EntityManager
       );
    }
 
+   bool isEntityAlive(uint32_t eid){
+      for (const Entity& e : entities){
+         if (e.getEntityID() == eid)
+            return true;      
+      }
+      return false;
+   }
+
    template <typename C1_t, typename C2_t>
-   const C1_t* getRequiredCmpFromCmp(const C2_t& c) const {
+   const C1_t& getRequiredCmpFromCmp(const C2_t& c) const {
       const Entity& e = getEntityByID(c.getEntityID());
       return e.getComponent<C1_t>();
    }
 
    template <typename C1_t, typename C2_t>
-   C1_t* getRequiredCmpFromCmp(const C2_t& c) {
-      return const_cast<C1_t*>(
+   C1_t& getRequiredCmpFromCmp(const C2_t& c) {
+      return const_cast<C1_t&>(
          std::as_const(*this).getRequiredCmpFromCmp<C1_t, C2_t>(c)
+      );
+   }
+
+   template <typename C1_t, typename C2_t>
+   const C1_t* getCmpFromCmp(const C2_t& c) const {
+      const Entity& e = getEntityByID(c.getEntityID());
+      return e.getComponentPtr<C1_t>();
+   }
+
+   template <typename C1_t, typename C2_t>
+   C1_t* getCmpFromCmp(const C2_t& c) {
+      return const_cast<C1_t*>(
+         std::as_const(*this).getCmpFromCmp<C1_t, C2_t>(c)
       );
    }
 
@@ -93,7 +120,6 @@ struct EntityManager
       }
       std::cerr << "EntityManager::getEntityIteratorByID() : Ese ID no corresponde con ningún Entity\n";
       std::terminate(); 
-
    }
 
    void destroyEntityByID(uint32_t eid)
@@ -114,4 +140,5 @@ struct EntityManager
 
    Blackboard& getBlackboard() {return blackboard; }
    const Blackboard& getBlackboard() const {return blackboard; }
+   DebugBoard& getDebugBoard() {return debugboard; }
 };

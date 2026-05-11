@@ -11,11 +11,11 @@ class Timer
 
 public:
 
-   Timer() { start(); }
+   // Timer() { start(); }
 
    void start() {m_start = clk::now(); }
 
-   clk::duration ellapsed() { return m_start - clk::now(); }
+   clk::duration ellapsed() { return clk::now() - m_start; }
 
    int64_t ellapsed_us() {
       using namespace std::chrono;

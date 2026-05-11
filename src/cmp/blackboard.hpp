@@ -14,5 +14,5 @@ struct Blackboard
    bool tactive = false; 
 
    // Target Entity
-   uint32_t teid = 0;
+   uint32_t teid = INVALID_EID;
 };

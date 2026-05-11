@@ -4,8 +4,9 @@ CC      := gcc
 SRC_DIR := src
 BUILD_DIR := build
 LIB_DIR := libs
-LIBS    := $(LIB_DIR)/picoPNG/libpicopng.a $(LIB_DIR)/tinyPTC/libtinyptc.a -lX11
+LIBS    := $(LIB_DIR)/picoPNG/libpicopng.a
 INCDIRS := -I$(SRC_DIR) -I$(LIB_DIR)
+BACKEND ?= imgui
 
 CFLAGS:= -Wall -Wextra -pedantic $(INCDIRS) -MMD -MP
 LINKFLAGS:=
@@ -20,11 +21,24 @@ ifdef SANITIZER
 	CFLAGS += -fsanitize=address 
 	LINKFLAGS:= -fsanitize=address
 endif
-
-
 CXXFLAGS  := $(CFLAGS) -std=c++20
 
+
 SRCS := $(sort $(shell find $(SRC_DIR) -type f \( -name "*.cpp" -o -name "*.c" \)))
+
+ifeq ($(BACKEND),imgui)
+	CXXFLAGS += -DUSE_IMGUI_GLFW
+	SRCS := $(filter-out %tinyptc.cpp,$(SRCS))
+	LIBS += $(LIB_DIR)/imgui/libimgui.a -lglfw -ldl -lGL -lGLEW
+	
+$(info *** BACKEND = imgui ***)
+endif
+ifeq ($(BACKEND),tinyptc)
+	SRCS := $(filter-out %imgui.cpp,$(SRCS))
+	LIBS += $(LIB_DIR)/tinyPTC/libtinyptc.a -lX11
+$(info *** BACKEND = tinyptc ***)
+endif
+
 OBJS := $(patsubst $(SRC_DIR)%.cpp,$(BUILD_DIR)%.o,$(SRCS))
 OBJS := $(patsubst $(SRC_DIR)%.c,$(BUILD_DIR)%.o,$(OBJS))
 DEPS := $(patsubst %.o,%.d,$(OBJS))

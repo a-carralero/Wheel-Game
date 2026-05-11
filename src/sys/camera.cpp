@@ -7,23 +7,18 @@
 
 void CameraSys::update(EntityManager& g) const 
 {
-   for(auto& cam: g.getComponents<CameraCmp>())
+   for(auto& cam: g.getCmpVector<CameraCmp>())
    {
-      if (cam.followEntityID < 0) continue;
+      if (cam.followEntityID == INVALID_EID) continue;
       auto& entity = g.getEntityByID(cam.followEntityID);
-      auto* entphy = entity.getComponent<PhysicsCmp>();
-      auto* camphy = g.getRequiredCmpFromCmp<PhysicsCmp>(cam);
-      if (!entphy || !camphy) {
-         std::cerr << "No encontramos los componentes físicos de la cámara o el entity a seguir\n";
-         std::terminate();
-      }
-      auto* renent = entity.getComponent<RenderCmp>();
-      uint32_t rw = 0, rh = 0;
-      if (renent){
-         rw = renent->w;
-         rh = renent->h;
-      }
-      camphy->pos.x = entphy->pos.x - ( cam.w - rw) / 2;
-      camphy->pos.y = entphy->pos.y - ( cam.h - rh) / 2;
+      auto& entphy = entity.getComponent<PhysicsCmp>();
+      auto& camphy = g.getRequiredCmpFromCmp<PhysicsCmp>(cam);
+
+      auto& renent = entity.getComponent<RenderCmp>();
+      uint32_t rw = renent.w; 
+      uint32_t rh = renent.h;
+
+      camphy.pos.x = entphy.pos.x - ( cam.w - rw) / 2;
+      camphy.pos.y = entphy.pos.y - ( cam.h - rh) / 2;
    }
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+static constexpr uint32_t INVALID_EID = 0xFF'FF'FF'FF;
+
 struct ComponentBase
 {
  private:
